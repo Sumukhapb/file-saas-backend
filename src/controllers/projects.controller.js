@@ -1,30 +1,28 @@
-const { projects } = require("../models/projects.model");
+const Project = require("../models/projects.model");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/AppError");
 
-exports.getProjects = catchAsync((req, res) => {
+exports.getProjects = catchAsync(async (req, res) => {
+  const projects = await Project.find({ userId: req.user.id });
+
   return res.status(200).json({
     status: "success",
-    results: projects.length,
     data: projects,
   });
 });
 
-exports.createProject = catchAsync((req, res) => {
+exports.createProject = catchAsync(async (req, res) => {
   const { name, description } = req.body;
 
   if (!name) {
     throw new AppError("Project Name Required!", 400);
   }
 
-  const newProject = {
-    id: projects.length + 1,
+  const newProject = await Project.create({
+    userId: req.user.id,
     name,
-    description: description || "",
-    createdAt: new Date(),
-  };
-
-  projects.push(newProject);
+    description,
+  });
 
   return res.status(201).json({
     status: "success",
@@ -32,9 +30,11 @@ exports.createProject = catchAsync((req, res) => {
   });
 });
 
-exports.updateProject = catchAsync((req, res) => {
-  const id = Number(req.params.id);
-  const project = projects.find((p) => p.id === id);
+exports.updateProject = catchAsync(async (req, res) => {
+  const project = await Project.findOne({
+    _id: req.params.id,
+    userId: req.user.id,
+  });
 
   if (!project) {
     throw new AppError("Project not Found!", 404);
@@ -49,21 +49,16 @@ exports.updateProject = catchAsync((req, res) => {
   if (name) project.name = name;
   if (description) project.description = description;
 
+  await project.save();
+
   return res.status(200).json({
     status: "success",
     data: project,
   });
 });
 
-exports.deleteProject = catchAsync((req, res) => {
-  const id = Number(req.params.id);
-  const index = projects.findIndex((p) => p.id === id);
-
-  if (index === -1) {
-    throw new AppError("Project Not Found!", 404);
-  }
-
-  projects.splice(index, 1);
+exports.deleteProject = catchAsync(async (req, res) => {
+  await Project.deleteOne({ _id: req.params.id, userId: req.user.id });
 
   return res.status(204).send();
 });

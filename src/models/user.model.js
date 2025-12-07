@@ -1,5 +1,14 @@
-let users = [];
+const mongoose = require("mongoose");
 
-module.exports = {
-  users,
-};
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: { type: String, default: "user" },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { versionKey: false }
+);
+
+module.exports = mongoose.model("User", userSchema);

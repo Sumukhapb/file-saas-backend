@@ -1,8 +1,8 @@
 const AppError = require("../utils/AppError");
 const { verifyAccessToken } = require("../utils/jwt");
-const { users } = require("../models/user.model");
+const User = require("../models/user.model");
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -14,7 +14,7 @@ module.exports = (req, res, next) => {
   try {
     const decoded = verifyAccessToken(token);
 
-    const user = users.find((u) => u.id === decoded.id);
+    const user = await User.findById(decoded.id);
 
     if (!user) {
       return next(new AppError("User no longer exists", 401));
@@ -23,6 +23,7 @@ module.exports = (req, res, next) => {
     req.user = user;
     return next();
   } catch (err) {
+    console.error("Auth error:", err);
     return next(new AppError("Invalid or expired token", 401));
   }
 };

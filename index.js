@@ -4,6 +4,7 @@ const morgan = require("morgan");
 const projectsRoutes = require("./src/routes/projects.route");
 const authRoutes = require("./src/routes/auth.route");
 const errorMiddleware = require("./src/middleware/error.middleware");
+const adminRoutes = require("./src/routes/admin.route");
 const { cookie } = require("./src/config/config");
 const cookieParser = require("cookie-parser");
 
@@ -15,6 +16,7 @@ app.use(cookieParser());
 
 app.use("/projects", projectsRoutes);
 app.use("/auth", authRoutes);
+app.use("/admin", adminRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({
